@@ -371,7 +371,7 @@ def run_from_spec(spec: VendorSpec, seed: Seed, k: int, config: dict[str, Any]) 
         config=_build_out_config(config, spec, vars["_audit"], payload, success=True),
         candidates=take_top(candidates, k),
         latency_ms=elapsed_ms,
-        cost_usd=compute_cost(spec, sent_count, k),
+        cost_usd=compute_cost(spec, sent_count, int(vars.get("max_records") or k)),
         error=None,
         requested_k=k,
         duplicates_removed=duplicates_removed,

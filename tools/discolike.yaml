@@ -1,9 +1,12 @@
 tool: discolike
 name: Discolike
 pricing:
-  mode: list
-  usd: 0.18
+  mode: per_result
   per_result_usd: 0.0035
-  source: "https://discolike.com/pricing/"
+  source: "https://discolike.com/pricing (Starter: $3.50 per 1,000 company records, no per-query fee on any plan; read 2026-11-20)"
 setups:
-  domain_similarity: {}
+  recommended:
+    over_fetch: 1.2
+  domain_auto_icp_text:
+    over_fetch: 1.2
+    auto_icp_text: true

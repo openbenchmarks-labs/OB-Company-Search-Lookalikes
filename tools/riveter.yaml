@@ -1,0 +1,9 @@
+tool: riveter
+name: Riveter
+pricing:
+  mode: per_credit
+  usd_per_credit: 0.0249
+  source: "https://www.riveterhq.com/pricing (Self-Serve $249/month for 10,000 credits = $0.0249 per credit; list building costs 2-4 credits per result; read 2026-11-20)"
+setups:
+  extend_seed_dataset:
+    max_build_rounds: 3

@@ -65,6 +65,7 @@ from .snapshot import (
 
 THROTTLE_SEC = 0.4
 ALL_VENDORS = list(REGISTRY.keys())
+OPT_IN_VENDORS = {"riveter"}  # runs only when named with --only
 
 
 def parse_csv(arg: str | None) -> list[str] | None:
@@ -96,7 +97,7 @@ def select_seeds(all_seeds: list[Seed], only: list[str] | None) -> list[Seed]:
 
 def select_vendors(only: list[str] | None) -> list[str]:
     if not only:
-        return ALL_VENDORS
+        return [v for v in ALL_VENDORS if v not in OPT_IN_VENDORS]
     wanted = set(only)
     return [v for v in ALL_VENDORS if v in wanted]
 

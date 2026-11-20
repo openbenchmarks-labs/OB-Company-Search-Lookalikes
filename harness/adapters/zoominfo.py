@@ -14,6 +14,7 @@ from typing import Any
 
 from ..http_client import record_vendor_call
 from ..models import Candidate, RunResult, Seed, take_top
+from ..spec_runner import _without_duplicates, _without_seed
 from ..tool_specs import load_tool
 
 TOOL = load_tool("zoominfo")
@@ -68,6 +69,7 @@ def run(seed: Seed, k: int, config: dict[str, Any]) -> RunResult:
             },
         ))
     candidates.sort(key=lambda c: c.rank if isinstance(c.rank, int) else 10**9)
+    candidates, duplicates_removed = _without_duplicates(_without_seed(candidates, seed))
     return RunResult(seed.seed_slug, VENDOR_SLUG, config["name"], config,
                      take_top(candidates, min(k, MAX_RESULTS)), elapsed_ms,
-                     requested_k=k, max_results=MAX_RESULTS)
+                     requested_k=k, duplicates_removed=duplicates_removed, max_results=MAX_RESULTS)

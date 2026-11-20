@@ -1,0 +1,9 @@
+tool: discolike
+name: Discolike
+pricing:
+  mode: list
+  usd: 0.18
+  per_result_usd: 0.0035
+  source: "https://discolike.com/pricing/"
+setups:
+  domain_similarity: {}

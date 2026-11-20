@@ -1,0 +1,11 @@
+# Not on the board: Lusha's lookalike endpoint needs 5-100 seeds per request,
+# and the benchmark scores one seed at a time. Kept for a future multi-seed design.
+tool: lusha
+name: Lusha
+pricing:
+  mode: none          # credits, not directly USD-priced
+setups:
+  seed_only:
+    fresh_session: false
+  fresh_session:
+    fresh_session: true

@@ -1,0 +1,8 @@
+tool: extruct
+name: Extruct
+pricing:
+  mode: per_call
+  usd: 0.098
+  source: "https://www.extruct.ai/pricing/index.html ($49 / 500 requests)"
+setups:
+  domain_similarity: {}

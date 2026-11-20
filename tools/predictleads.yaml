@@ -1,0 +1,11 @@
+tool: predictleads
+name: PredictLeads
+pricing:
+  mode: per_result
+  per_result_usd: 0.04
+  source: "https://predictleads.com/pricing"
+setups:
+  default:
+    use_paging: false
+  paginated:
+    use_paging: true

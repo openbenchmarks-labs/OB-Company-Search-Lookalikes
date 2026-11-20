@@ -1,0 +1,8 @@
+tool: cufinder
+name: CUFinder
+pricing:
+  mode: per_result
+  per_result_usd: 0.245
+  source: "https://cufinder.io/pricing (5 credits per company at $49 / 1,000 credits, billed on rows sent)"
+setups:
+  domain_lookalikes: {}

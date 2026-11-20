@@ -1,0 +1,9 @@
+tool: exa
+name: Exa
+pricing:
+  mode: per_call
+  usd: 0.097
+  source: "https://exa.ai/pricing?tab=api"
+setups:
+  seed_first:
+    over_fetch: 1

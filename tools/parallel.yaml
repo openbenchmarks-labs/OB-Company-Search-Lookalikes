@@ -1,0 +1,8 @@
+tool: parallel
+name: Parallel
+pricing:
+  mode: per_call
+  usd: 0.005
+  source: "https://docs.parallel.ai/getting-started/pricing"
+setups:
+  seed_first: {}

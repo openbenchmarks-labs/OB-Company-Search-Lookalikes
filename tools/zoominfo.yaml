@@ -1,0 +1,8 @@
+# The slug is not plain "zoominfo": other boards already use that slug for a
+# different ZoomInfo product. This board's saved results key on this one.
+tool: zoominfo-lookalike
+name: ZoomInfo
+pricing:
+  mode: none
+setups:
+  native_similar_by_name: {}

@@ -1,0 +1,20 @@
+tool: ocean
+name: Ocean.io
+pricing:
+  mode: per_result
+  per_result_usd: 0.01
+  source: "https://www.ocean.io/pricing (Growth plan $250/month billed annually for 60,000 credits a year = $0.05 per credit) and https://app.ocean.io/docs/getting-started/credits (0.2 credits per result)"
+setups:
+  seed_only:
+    filters: {}
+  mid_market:
+    filters:
+      companySizes: ["51-200", "201-500", "501-1000"]
+  us_uk_de_funded:
+    filters:
+      companySizes: ["51-200", "201-500", "501-1000"]
+      primaryLocations: { includeCountries: ["us", "gb", "de"] }
+  # Maps the seed's public hints (employee range + locations) to
+  # Ocean's filter shape. Skipped when the seed has no hints.
+  seed_firmographic:
+    use_seed_firmo: true

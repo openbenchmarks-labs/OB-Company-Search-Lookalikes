@@ -1,0 +1,7 @@
+name: OB-Company-Search-Lookalikes
+order:
+  serves: Teams choosing a company-lookalike or search tool to find similar companies from a seed company.
+  win: Higher precision and relevant lookalikes per dollar across seed companies under the same judge.
+  budget_usd: 0
+  refresh_days: 30
+  not_measured_max: 0.1

@@ -1,0 +1,18 @@
+tool: companyenrich
+name: CompanyEnrich
+# Credits, no fixed USD equivalent: 5 per company returned (5 if none found).
+pricing:
+  mode: per_result
+  per_result_usd: 0.049
+  source: "https://companyenrich.com/pricing (5 credits per company at $49 / 5,000 credits)"
+setups:
+  # lookalike.weight: -1..1. Higher favors more similar companies, lower favors
+  # more established ones. One paid setup, at the API default of 0, like most
+  # tools on the board (5 credits/company: ~24k credits at 48 seeds x k=100).
+  default:
+    similarity_weight: 0
+  # Same public hints Ocean's seed_firmographic setup uses (country
+  # + employee range). Skipped when the seed has no hints.
+  seed_firmographic:
+    similarity_weight: 0
+    use_seed_firmo: true

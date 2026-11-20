@@ -1,0 +1,8 @@
+tool: seltz
+name: Seltz
+pricing:
+  mode: per_call
+  usd: 0.005
+  source: "https://docs.seltz.ai/pricing ($5 / 1,000 requests)"
+setups:
+  anchor_capabilities_query: {}

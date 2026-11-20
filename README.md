@@ -16,9 +16,9 @@ For each seed company, every tool returns an ordered list of candidate lookalike
 
 ## Tools evaluated
 
-11 tools configured in [`tools/`](tools/README.md). Ten are on the board; Lusha is configured but not ranked, because its lookalike endpoint needs at least five seed companies per request.
+12 tools configured in [`tools/`](tools/README.md). Ten are on the board. Lusha is configured but not ranked, because its lookalike endpoint needs at least five seed companies per request. Riveter is a new arm, not ranked yet, and runs only when named with `--only riveter`.
 
-`companyenrich`, `cufinder`, `discolike`, `exa`, `extruct`, `lusha`, `ocean`, `parallel`, `predictleads`, `seltz`, `zoominfo`
+`companyenrich`, `cufinder`, `discolike`, `exa`, `extruct`, `lusha`, `ocean`, `parallel`, `predictleads`, `riveter`, `seltz`, `zoominfo`
 
 ## Dataset
 
@@ -35,7 +35,7 @@ See [`data/README.md`](data/README.md) for the `latest-lookalike.json` schema an
 
 - [`data/`](data/README.md): Schema for `latest-lookalike.json` and run output layout (no seed files committed).
 - [`harness/`](harness/README.md): CLI runner (`harness/run.py`), re-judging CLI (`harness/rejudge.py`), and per-tool API adapters.
-- [`tools/`](tools/README.md): One `<tool>.yaml` config per vendor with setups and pricing (11 tools).
+- [`tools/`](tools/README.md): One `<tool>.yaml` config per vendor with setups and pricing (12 tools).
 - [`judge/`](judge/README.md): Three-model judge panel, precision/ranking metrics, and leaderboard builder.
 - [`benchmark.yaml`](benchmark.yaml): Benchmark contract, scope, and refresh cadence.
 - [`AGENTS.md`](AGENTS.md): Entry guide for coding agents.

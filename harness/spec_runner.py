@@ -279,6 +279,8 @@ def compute_cost(spec: VendorSpec, sent: int, depth: int) -> float | None:
     cost = spec.cost
     if cost.mode == "none":
         return None
+    if cost.mode == "per_credit":
+        raise ValueError(f"{spec.slug}: per_credit tools price their own calls in their adapter")
     billable = min(max(sent, 0), depth)
     flat = cost.usd if cost.mode in ("per_call", "list") else 0.0
     per = cost.per_result_usd if cost.mode in ("per_result", "list") else 0.0

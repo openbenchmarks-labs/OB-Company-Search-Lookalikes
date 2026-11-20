@@ -14,6 +14,10 @@ and the benchmark scores one seed at a time.
 ZoomInfo runs through the `gtm` CLI rather than an HTTP API, so it needs the
 binary on PATH instead of an API key; without it the cell fails with
 "gtm CLI is not installed".
+
+Riveter has no lookalike endpoint: its adapter generates the rows through the
+async dataset API (create → build → poll → read), and one cell takes minutes
+rather than seconds. It runs only when named with `--only riveter`.
 """
 from . import (
     companyenrich,
@@ -24,6 +28,7 @@ from . import (
     ocean,
     parallel,
     predictleads,
+    riveter,
     seltz,
     zoominfo,
 )
@@ -36,6 +41,7 @@ REGISTRY = {
     discolike.VENDOR_SLUG: discolike,
     parallel.VENDOR_SLUG: parallel,
     predictleads.VENDOR_SLUG: predictleads,
+    riveter.VENDOR_SLUG: riveter,
     seltz.VENDOR_SLUG: seltz,
     zoominfo.VENDOR_SLUG: zoominfo,
     companyenrich.VENDOR_SLUG: companyenrich,

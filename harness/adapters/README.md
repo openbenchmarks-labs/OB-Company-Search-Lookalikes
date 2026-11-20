@@ -12,5 +12,6 @@ One file per tool. Each sends the tool's request for one seed and turns the repl
 - `ocean.py` — Ocean.io company search seeded with the seed's domain, with optional filters.
 - `parallel.py` — Parallel entity search with a seed-first sentence; keeps profile sites out of the domain.
 - `predictleads.py` — PredictLeads similar companies; returns about 25 companies.
+- `riveter.py` — Riveter builds a fresh list of companies for each seed through its dataset API; one seed takes minutes.
 - `seltz.py` — Seltz company search; reads each company out of a Markdown page.
 - `zoominfo.py` — ZoomInfo similar companies through the `gtm` command-line tool; returns at most 25.

@@ -27,23 +27,27 @@ Hook = Optional[Callable[..., Any]]
 class CostSpec(BaseModel):
     """List price of one call. `per_call` is a flat fee per request; `per_result` is a fee per
     row the tool sends (seed and duplicates included, since that is what it bills for), capped
-    at the depth asked for; `list` is both. `source` says where the rate comes from."""
+    at the depth asked for; `list` is both. `per_credit` is a fee per credit the tool reports
+    using, priced by its adapter. `source` says where the rate comes from."""
     model_config = ConfigDict(extra="forbid")
-    mode: str = "none"  # none | per_call | per_result | list
+    mode: str = "none"  # none | per_call | per_result | list | per_credit
     usd: Optional[float] = None             # flat fee per request (per_call, list)
     per_result_usd: Optional[float] = None  # fee per row sent (per_result, list)
+    usd_per_credit: Optional[float] = None  # fee per credit used (per_credit)
     source: Optional[str] = None
 
     @model_validator(mode="after")
     def _check(self) -> "CostSpec":
-        if self.mode not in ("none", "per_call", "per_result", "list"):
-            raise ValueError(f"cost.mode must be none|per_call|per_result|list, got {self.mode!r}")
+        if self.mode not in ("none", "per_call", "per_result", "list", "per_credit"):
+            raise ValueError(f"cost.mode must be none|per_call|per_result|list|per_credit, got {self.mode!r}")
         if self.mode == "per_call" and self.usd is None:
             raise ValueError("cost.usd is required for per_call")
         if self.mode == "per_result" and self.per_result_usd is None:
             raise ValueError("cost.per_result_usd is required for per_result")
         if self.mode == "list" and (self.usd is None or self.per_result_usd is None):
             raise ValueError("cost.usd and cost.per_result_usd are required for list")
+        if self.mode == "per_credit" and self.usd_per_credit is None:
+            raise ValueError("cost.usd_per_credit is required for per_credit")
         return self
 
 

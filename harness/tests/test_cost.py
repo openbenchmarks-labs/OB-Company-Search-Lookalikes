@@ -11,8 +11,8 @@ def test_rows_past_the_depth_asked_for_are_not_billed() -> None:
     assert abs(compute_cost(companyenrich.SPEC, 120, 100) - 4.9) < 1e-9
 
 
-def test_flat_plus_per_row_tool() -> None:
-    assert abs(compute_cost(discolike.SPEC, 100, 100) - (0.18 + 0.35)) < 1e-9
+def test_per_row_tool_without_a_per_call_fee() -> None:
+    assert abs(compute_cost(discolike.SPEC, 100, 100) - 0.35) < 1e-9
 
 
 def test_flat_tool_ignores_row_count() -> None:

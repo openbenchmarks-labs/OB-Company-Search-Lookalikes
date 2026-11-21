@@ -164,6 +164,7 @@ def run_vendor_for_seed(
                 run: RunResult = runner["run"](seed, k, config)
             attempt["vendor_calls"] = [raw_http_call_to_dict(c) for c in http_calls]
         except Exception as exc:  # noqa: BLE001
+            attempt["vendor_calls"] = [raw_http_call_to_dict(c) for c in http_calls]
             attempt["result"] = {
                 "status": "vendor_crash",
                 "error": f"{type(exc).__name__}: {exc}",

@@ -1,0 +1,11 @@
+tool: model-only-gpt-5.6-sol
+name: GPT-5.6 Sol (model only)
+# A baseline, not a product: the model answers from its own knowledge with no web access.
+# Billed per token, so cost is computed in harness/adapters/model_only.py from the provider's
+# per-million-token rates where they are pinned, not from a list price here.
+pricing:
+  mode: none
+setups:
+  # The list call returns names and domains; each company is then described from its
+  # fetched homepage in a separate call that never sees the seed.
+  list_then_describe: {}

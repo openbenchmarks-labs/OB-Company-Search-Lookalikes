@@ -947,12 +947,20 @@ def _format_company_block(
     return "\n".join(lines)
 
 
+# Harness bookkeeping on a candidate, never shown to the judges: it says how the row was produced
+# (for example that a model wrote the description), not what the company is.
+_HIDDEN_EXTRA_KEYS = frozenset({
+    "domain_resolves", "source", "description_source", "description_error",
+    "page_fetched", "page_url", "page_error", "basis_citations",
+})
+
+
 def _format_extra(extra: dict[str, Any]) -> str | None:
     if not extra:
         return None
     keep: dict[str, Any] = {}
     for k, v in extra.items():
-        if v in (None, "", [], {}):
+        if k in _HIDDEN_EXTRA_KEYS or v in (None, "", [], {}):
             continue
         keep[k] = v if not isinstance(v, str) else v[:200]
     if not keep:

@@ -8,7 +8,7 @@ Quick navigation guide for coding agents working in `OB-Company-Search-Lookalike
 |---|---|---|
 | **`data/`** | Seed companies file format and where results are saved | `data/README.md` |
 | **`harness/`** | Execution only: CLI runner, re-judge CLI, tool adapters, spec runner, HTTP client, result files | `harness/run.py`, `harness/rejudge.py`, `harness/adapters/<tool>.py`, `harness/spec_runner.py`, `harness/tool_specs.py`, `harness/http_client.py`, `harness/models.py`, `harness/snapshot.py`, `harness/mock_tool.py`, `harness/tests/` |
-| **`tools/`** | Tool setups & pricing (one file per tool for clean PRs) | `tools/<tool>.yaml` (11 tools) |
+| **`tools/`** | Tool setups & pricing (one file per tool for clean PRs) | `tools/<tool>.yaml` (18 tools) |
 | **`judge/`** | Grading only: LLM judge panel and prompt, metrics, board math | `judge/llm_judge.py`, `judge/metrics.py`, `judge/leaderboard.py`, `judge/tests/` |
 
 Benchmark order & win condition live at the root in `benchmark.yaml`.

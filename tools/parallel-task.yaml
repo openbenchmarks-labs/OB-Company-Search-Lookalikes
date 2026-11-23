@@ -1,0 +1,10 @@
+tool: parallel-task
+name: Parallel Task API
+# One task run per seed. List price per completed run on the base processor.
+pricing:
+  mode: per_call
+  usd: 0.01
+  source: "https://docs.parallel.ai/getting-started/pricing"
+setups:
+  base:
+    processor: base

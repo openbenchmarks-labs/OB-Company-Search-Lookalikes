@@ -2,11 +2,71 @@
 from __future__ import annotations
 
 import math
+import re
 from typing import Any
 
 from harness.models import now_iso
 
 PRECISION_CUTOFFS = (10, 25, 100)
+
+# --------------------------------------------------------------------------- #
+# Failed cells                                                                #
+# --------------------------------------------------------------------------- #
+# A cell with no judged list is one of two kinds:
+#   empty — the tool answered for the seed but gave no usable list: zero
+#           candidates, or HTTP 404 saying the seed company or domain is not
+#           found, on every setup that called it. It counts as 0 in the tool's
+#           averages, at each cutoff the tool is scored at.
+#   error — anything else (a setup skipped before any call, a crash, a judge
+#           error, a timeout, 5xx/429, other 4xx, a bare 404). It may be our
+#           side or transient, so it stays out of the averages and is counted.
+
+_EMPTY_ANSWER = re.compile(r"(?:[\w.\-]+: )?(?:0 candidates|no_candidates)")
+_SEED_NOT_FOUND = re.compile(r"(?:[\w.\-]+: )?HTTP 404\b.*\b(?:company|domain) not found", re.IGNORECASE | re.DOTALL)
+
+
+def _is_empty_answer(message: str | None) -> bool:
+    """Zero candidates, or HTTP 404 saying the seed company or domain is not found
+    (a bare 'Not Found' may be a wrong URL on our side)."""
+    m = (message or "").strip()
+    return bool(_EMPTY_ANSWER.fullmatch(m) or _SEED_NOT_FOUND.match(m))
+
+
+def _attempt_message(result: dict[str, Any]) -> str | None:
+    if result.get("status") == "no_candidates":
+        return "0 candidates"
+    if result.get("status") == "vendor_error":
+        return result.get("error")
+    return result.get("status")
+
+
+def _skipped_before_call(attempt: dict[str, Any]) -> bool:
+    result = attempt.get("result") or {}
+    return (
+        result.get("status") == "vendor_error"
+        and str(result.get("error") or "").startswith("skipped")
+        and not attempt.get("vendor_calls")
+    )
+
+
+def failure_kind(error: str | None, attempts: list[dict[str, Any]] | None = None) -> str:
+    """'empty' or 'error' for a cell with no judged list. With the run's
+    attempts, every setup that called the tool must have come back empty; a
+    setup skipped before any call does not count."""
+    if attempts:
+        ran = [a for a in attempts if not _skipped_before_call(a)]
+        messages = [_attempt_message(a.get("result") or {}) for a in ran]
+    else:
+        messages = [error]
+    return "empty" if messages and all(_is_empty_answer(m) for m in messages) else "error"
+
+
+def cell_failure_kind(cell: dict[str, Any]) -> str | None:
+    """None for a judged cell. Cells written before `failure_kind` existed are
+    classified from their `error` string."""
+    if cell.get("precision_at_k") is not None:
+        return None
+    return cell.get("failure_kind") or failure_kind(cell.get("error"))
 
 
 def _nearest_rank(sorted_values: list[int], q: float) -> int | None:
@@ -52,10 +112,13 @@ def recompute_leaderboard(snapshot: dict[str, Any], k: int) -> None:
             if c.get("max_results") is None or int(c["max_results"]) >= k
         ]
         attempted = len({c["seed_slug"] for c in my_cells})
+        kinds = [cell_failure_kind(c) for c in my_cells]
+        zeroed = kinds.count("empty")
 
-        # avg Precision@K — mean across judged cells only
+        # avg Precision@K — judged cells, plus a 0 for each seed the tool
+        # answered with an empty list, once it is scored at K at all
         if primary_cells:
-            avg = sum(c["precision_at_k"] for c in primary_cells) / len(primary_cells)
+            avg = sum(c["precision_at_k"] for c in primary_cells) / (len(primary_cells) + zeroed)
             row["avg_precision_at_k"] = round(avg, 2)
         else:
             row["avg_precision_at_k"] = None
@@ -73,7 +136,7 @@ def recompute_leaderboard(snapshot: dict[str, Any], k: int) -> None:
             if cells_with_cutoff:
                 row[avg_key] = round(
                     sum(float(c[precision_key]) for c in cells_with_cutoff)
-                    / len(cells_with_cutoff),
+                    / (len(cells_with_cutoff) + zeroed),
                     2,
                 )
             else:
@@ -84,6 +147,8 @@ def recompute_leaderboard(snapshot: dict[str, Any], k: int) -> None:
 
         row["seeds_attempted"] = attempted
         row["seeds_judged"] = len(judged_cells)
+        row["seeds_zeroed"] = zeroed
+        row["seeds_excluded"] = kinds.count("error")
         row["total_seeds"] = total_seeds
         row["k"] = k
         row["total_relevant"] = sum(

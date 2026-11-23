@@ -1,0 +1,9 @@
+tool: context-company-fast
+name: context.dev company search (fast)
+# Billed in context.dev credits per page of 10 companies (2 credits per page in fast
+# mode), with no fixed USD price per credit, so no list price is set.
+pricing:
+  mode: none
+setups:
+  fast:
+    mode: fast

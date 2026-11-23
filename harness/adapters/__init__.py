@@ -11,6 +11,9 @@ Precision@K for the seed.
 Lusha is not registered: its lookalike endpoint needs 5-100 seeds per request,
 and the benchmark scores one seed at a time.
 
+The model-only rows are baselines, not products: a model answers from its own
+knowledge with no web access and is scored like any tool.
+
 ZoomInfo runs through the `gtm` CLI rather than an HTTP API, so it needs the
 binary on PATH instead of an API key; without it the cell fails with
 "gtm CLI is not installed".
@@ -21,8 +24,11 @@ from . import (
     discolike,
     exa,
     extruct,
+    model_only,
     ocean,
     parallel,
+    parallel_task,
+    parallel_task_core,
     predictleads,
     seltz,
     zoominfo,
@@ -39,4 +45,8 @@ REGISTRY = {
     seltz.VENDOR_SLUG: seltz,
     zoominfo.VENDOR_SLUG: zoominfo,
     companyenrich.VENDOR_SLUG: companyenrich,
+    parallel_task.VENDOR_SLUG: parallel_task,
+    parallel_task_core.VENDOR_SLUG: parallel_task_core,
+    # Model-only baselines: one entry per model (see model_only.MODEL_VENDORS).
+    **model_only.RUNNERS,
 }

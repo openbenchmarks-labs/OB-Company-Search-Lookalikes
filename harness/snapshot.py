@@ -207,12 +207,17 @@ def upsert_seed_vendor_cell(
     k: int,
     judged: JudgedRun | None,
     error: str | None = None,
+    attempts: list[dict[str, Any]] | None = None,
 ) -> None:
     """Insert / replace one (seed, tool) cell in `snapshot.seed_vendors`.
 
-    Pass `judged=None` (and optionally an `error` string) when the tool
-    failed or returned 0 candidates — the cell will land with
-    precision_at_k=null so the board shows it as N/A."""
+    Pass `judged=None` (and optionally an `error` string and the run's
+    `attempts`) when the tool failed or returned 0 candidates — the cell will
+    land with precision_at_k=null so the board shows it as N/A, and
+    `failure_kind` says whether it scores 0 or stays out of the averages
+    (see judge.leaderboard.failure_kind)."""
+    from judge.leaderboard import failure_kind
+
     cells: list[dict[str, Any]] = snapshot.setdefault("seed_vendors", [])
 
     # Drop any existing cell for this (seed, tool) pair.
@@ -250,6 +255,7 @@ def upsert_seed_vendor_cell(
                 "judged_at": None,
                 "config_used": None,
                 "error": error,
+                "failure_kind": failure_kind(error, attempts),
             }
         )
         return

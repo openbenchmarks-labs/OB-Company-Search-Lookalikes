@@ -12,13 +12,16 @@ For each seed company, every tool returns an ordered list of candidate lookalike
 
 - **Relevance rule:** A returned company counts as a valid lookalike when it matches the seed's **anchor** (what every lookalike must be) and at least one **capability**, decided by majority vote of a three-LLM panel from three independent labs (`judge/llm_judge.py`).
 - **Metrics:** Precision@10, Precision@100 (headline metric), relevant lookalikes per dollar, recall, nDCG, MAP, and MRR (`judge/metrics.py`).
+- **Empty answers:** A seed the tool answers with no usable list (zero companies, or "company not found" for the seed) counts as 0 in its averages. Other failures (timeouts, server errors, a setup skipped for the seed) may be on our side, so they stay out of the averages and are counted on the board row (`judge/leaderboard.py`).
 - **Auditability:** Each `(seed, tool)` cell records both the raw provider request/response and the judge panel prompts/responses (with API keys stripped).
 
 ## Tools evaluated
 
-11 tools configured in [`tools/`](tools/README.md). Ten are on the board; Lusha is configured but not ranked, because its lookalike endpoint needs at least five seed companies per request.
+16 tools configured in [`tools/`](tools/README.md). The published board ranks ten of them. Lusha is configured but not ranked, because its lookalike endpoint needs at least five seed companies per request. The Parallel Task API and the three model-only baselines are newer additions.
 
-`companyenrich`, `cufinder`, `discolike`, `exa`, `extruct`, `lusha`, `ocean`, `parallel`, `predictleads`, `seltz`, `zoominfo`
+`companyenrich`, `cufinder`, `discolike`, `exa`, `extruct`, `lusha`, `ocean`, `parallel`, `parallel-task`, `parallel-task-core`, `predictleads`, `seltz`, `zoominfo`
+
+Model-only baselines (a model answers from its own knowledge, with no web access): `model-only-gpt-5.6-sol`, `model-only-claude-opus-5-5`, `model-only-kimi-k3`
 
 ## Dataset
 
@@ -35,7 +38,7 @@ See [`data/README.md`](data/README.md) for the `latest-lookalike.json` schema an
 
 - [`data/`](data/README.md): Schema for `latest-lookalike.json` and run output layout (no seed files committed).
 - [`harness/`](harness/README.md): CLI runner (`harness/run.py`), re-judging CLI (`harness/rejudge.py`), and per-tool API adapters.
-- [`tools/`](tools/README.md): One `<tool>.yaml` config per vendor with setups and pricing (11 tools).
+- [`tools/`](tools/README.md): One `<tool>.yaml` config per vendor with setups and pricing (18 tools).
 - [`judge/`](judge/README.md): Three-model judge panel, precision/ranking metrics, and leaderboard builder.
 - [`benchmark.yaml`](benchmark.yaml): Benchmark contract, scope, and refresh cadence.
 - [`AGENTS.md`](AGENTS.md): Entry guide for coding agents.

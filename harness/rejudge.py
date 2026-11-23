@@ -281,6 +281,7 @@ def main() -> int:
             upsert_seed_vendor_cell(
                 snapshot, dataset_slug=dataset_slug, seed=seed,
                 provider_slug=vendor, provider_name=prov_name, k=k, judged=None, error=err,
+                attempts=attempts,
             )
             print(f"{tag} FAIL   {err}")
             failed += 1

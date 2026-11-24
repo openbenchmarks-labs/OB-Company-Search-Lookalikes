@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import math
 import os
 import time
 import urllib.error
@@ -21,6 +22,8 @@ from .models import RawHttpCall
 
 ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
 HTTP_TIMEOUT_SEC = 60
+HTTP_ATTEMPTS = 3
+RETRY_STATUSES = {429, 500, 502, 503, 504}
 
 # Headers that carry secrets — normalized to lowercase for case-insensitive
 # matching. Anything matched here is redacted before the raw artifact lands
@@ -149,12 +152,14 @@ def http_request(
     body_encoding: str = "json",
     timeout: int = HTTP_TIMEOUT_SEC,
 ) -> tuple[int, Any, int]:
-    """Returns (status, json_or_text, elapsed_ms). Raises on network errors
-    so callers can decide whether to retry.
+    """Returns (status, json_or_text, elapsed_ms). Retries network errors,
+    429 and 5xx with backoff, honouring Retry-After; raises the network
+    error if the last attempt still fails. elapsed_ms is the time of the
+    attempt that produced the response, without earlier failed attempts.
 
-    When a `capture_http_calls()` context is active, every call here is
-    also appended to the active trace buffer as a fully redacted
-    `RawHttpCall`. Adapters don't need to know — the capture is
+    When a `capture_http_calls()` context is active, every attempt that got
+    a response is also appended to the active trace buffer as a fully
+    redacted `RawHttpCall`. Adapters don't need to know — the capture is
     transparent."""
     data: bytes | None = None
     hdrs = dict(headers or {})
@@ -176,42 +181,58 @@ def http_request(
     )
 
     req = urllib.request.Request(url=url, data=data, method=method.upper(), headers=hdrs)
-    start = time.monotonic()
-    status: int
-    parsed: Any
-    response_text = ""
+    for attempt in range(1, HTTP_ATTEMPTS + 1):
+        start = time.monotonic()
+        try:
+            status, parsed, response_text, retry_after = _send_once(req, timeout)
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if attempt == HTTP_ATTEMPTS:
+                raise
+            time.sleep(2 ** attempt)
+            continue
+        elapsed_ms = int((time.monotonic() - start) * 1000)
+
+        trace = _HTTP_TRACE.get()
+        if trace is not None:
+            trace.append(
+                RawHttpCall(
+                    method=method.upper(),
+                    url=url,
+                    request_headers=_redact_headers(hdrs),
+                    request_body=body,  # already JSON-ish; safe to serialize
+                    response_status=status,
+                    response_body=parsed,
+                    response_text_preview=response_text[:4096],
+                    elapsed_ms=elapsed_ms,
+                )
+            )
+
+        if status in RETRY_STATUSES and attempt < HTTP_ATTEMPTS:
+            time.sleep(_retry_after_sec(retry_after) or 2 ** attempt)
+            continue
+        return status, parsed, elapsed_ms
+    raise AssertionError("unreachable")
+
+
+def _send_once(req: urllib.request.Request, timeout: int) -> tuple[int, Any, str, str | None]:
+    """One request: (status, json_or_text, text, Retry-After header)."""
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw = resp.read()
-            elapsed_ms = int((time.monotonic() - start) * 1000)
-            response_text = raw.decode("utf-8", errors="replace")
-            try:
-                parsed = json.loads(response_text)
-            except json.JSONDecodeError:
-                parsed = response_text
-            status = resp.status
+            response_text = resp.read().decode("utf-8", errors="replace")
+            status, headers = resp.status, resp.headers
     except urllib.error.HTTPError as e:
-        elapsed_ms = int((time.monotonic() - start) * 1000)
         response_text = e.read().decode("utf-8", errors="replace")
-        try:
-            parsed = json.loads(response_text)
-        except json.JSONDecodeError:
-            parsed = response_text
-        status = e.code
+        status, headers = e.code, e.headers
+    try:
+        parsed: Any = json.loads(response_text)
+    except json.JSONDecodeError:
+        parsed = response_text
+    return status, parsed, response_text, headers.get("Retry-After") if headers else None
 
-    trace = _HTTP_TRACE.get()
-    if trace is not None:
-        trace.append(
-            RawHttpCall(
-                method=method.upper(),
-                url=url,
-                request_headers=_redact_headers(hdrs),
-                request_body=body,  # already JSON-ish; safe to serialize
-                response_status=status,
-                response_body=parsed,
-                response_text_preview=response_text[:4096],
-                elapsed_ms=elapsed_ms,
-            )
-        )
 
-    return status, parsed, elapsed_ms
+def _retry_after_sec(value: str | None) -> float | None:
+    try:
+        seconds = float(value or "")
+    except ValueError:
+        return None
+    return min(seconds, 60.0) if math.isfinite(seconds) and seconds > 0 else None

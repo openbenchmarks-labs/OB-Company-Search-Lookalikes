@@ -7,7 +7,7 @@ One file per tool. Each sends the tool's request for one seed and turns the repl
 - `context_company_fast.py` — context.dev company search in fast mode: the seed's query, paged by cursor until K.
 - `context_company_ultra.py` — context.dev company search in ultra mode; same request and paging as fast.
 - `cufinder.py` — CUFinder lookalike finder; returns at most 10 companies.
-- `discolike.py` — Discolike domain lookalikes.
+- `discolike.py` — Discolike lookalikes for the seed's domain, steered by the seed's search sentence when it has one; waits and retries when rate-limited.
 - `exa.py` — Exa company search with a seed-first sentence; one result per domain.
 - `extruct.py` — Extruct similar companies for the seed's domain.
 - `model_only.py` — Model-only baselines (GPT-5.6 Sol, Claude Opus 5.5, Kimi K3): the model lists companies from its own knowledge, then describes each from its fetched homepage without seeing the seed.

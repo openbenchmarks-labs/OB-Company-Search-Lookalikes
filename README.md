@@ -1,4 +1,4 @@
-# OB-Company-Search-Lookalikes
+# OB-Company-Search (Lookalikes)
 
 Open, independent benchmark of company lookalike APIs. Ten tools each return up to 100 similar companies for the same 48 B2B seed companies, and a three-model LLM judge panel scores every company returned. Tools are ranked by Precision@100, with Precision@10 for the top of the list.
 

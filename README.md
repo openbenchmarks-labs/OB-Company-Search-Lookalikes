@@ -28,7 +28,7 @@ Model-only baselines (a model answers from its own knowledge, with no web access
 No seed files or run dumps are committed to this repository.
 
 - **Public split:** 10 seed companies published on Hugging Face at [`openbenchmarks/OB-Company-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Lookalikes).
-- **Held-out split:** The seed set used for the published leaderboard stays private so tools cannot tune to it.
+- **Leaderboard seeds:** The current leaderboard's 48 seeds and every judged result are public on openbenchmarks.com. A separate private seed set for the next version of the board stays out of this repository so tools cannot tune to it.
 
 Place your local seed file at `data/latest-lookalike.json` before running live APIs, or pass `--mock` for a fully offline run.
 

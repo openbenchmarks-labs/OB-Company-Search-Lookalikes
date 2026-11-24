@@ -4,7 +4,7 @@ No seed companies or run outputs are committed to this folder.
 
 ## Public vs. held-out evaluation sets
 
-- **Public split:** 10 seed companies published on Hugging Face at [`openbenchmarks/OB-Company-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Lookalikes).
+- **Public split:** 10 seed companies published on Hugging Face at [`openbenchmarks/OB-Company-Search-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Search-Lookalikes).
 - **Held-out split (private):** The seed set used for the published leaderboard stays private so tools cannot tune to it.
 - **Local runs:** The runner reads seed companies from `data/latest-lookalike.json` (gitignored) and writes scored results back under `data/`. Use `--mock` to test the pipeline without a seed file or API keys.
 

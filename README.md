@@ -1,8 +1,8 @@
-# OB-Company-Search-Lookalikes
+# OB-Company-Search (Lookalikes)
 
 Open, independent benchmark of company lookalike APIs. Ten tools each return up to 100 similar companies for the same 48 B2B seed companies, and a three-model LLM judge panel scores every company returned. Tools are ranked by Precision@100, with Precision@10 for the top of the list.
 
-**Live leaderboard:** [openbenchmarks.com/lookalikes](https://openbenchmarks.com/lookalikes) · **Public dataset:** [`openbenchmarks/OB-Company-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Lookalikes)
+**Live leaderboard:** [openbenchmarks.com/lookalikes](https://openbenchmarks.com/lookalikes) · **Public dataset:** [`openbenchmarks/OB-Company-Search-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Search-Lookalikes)
 
 Published and maintained by **[OpenBenchmarks Labs](https://openbenchmarks.com)**.
 
@@ -24,7 +24,7 @@ For each seed company, every tool returns an ordered list of candidate lookalike
 
 No seed files or run dumps are committed to this repository.
 
-- **Public split:** 10 seed companies published on Hugging Face at [`openbenchmarks/OB-Company-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Lookalikes).
+- **Public split:** 10 seed companies published on Hugging Face at [`openbenchmarks/OB-Company-Search-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Search-Lookalikes).
 - **Held-out split:** The seed set used for the published leaderboard stays private so tools cannot tune to it.
 
 Place your local seed file at `data/latest-lookalike.json` before running live APIs, or pass `--mock` for a fully offline run.
@@ -68,14 +68,14 @@ Add `--mock` for an end-to-end offline run using a mock vendor and mock judge.
 
 - [Live leaderboard](https://openbenchmarks.com/lookalikes) and [methodology](https://openbenchmarks.com/lookalikes#methodology)
 - [JSON API](https://openbenchmarks.com/api/benchmarks/lookalikes) (CC-BY-4.0)
-- [Hugging Face dataset](https://huggingface.co/datasets/openbenchmarks/OB-Company-Lookalikes)
+- [Hugging Face dataset](https://huggingface.co/datasets/openbenchmarks/OB-Company-Search-Lookalikes)
 - [`llms.txt`](https://openbenchmarks.com/llms.txt)
 
 ## Related benchmarks
 
 - [OB-Company-Search-Multi-Turn](https://github.com/openbenchmarks-labs/OB-Company-Search-Multi-Turn): Multi-hop company research agents ([leaderboard](https://openbenchmarks.com/multi-turn-company-search))
-- [OB-Company-Enrichment](https://github.com/openbenchmarks-labs/OB-Company-Enrichment): Core firmographic enrichment ([leaderboard](https://openbenchmarks.com/company-enrichment))
-- [OB-Company-Funding](https://github.com/openbenchmarks-labs/OB-Company-Funding): Latest funding round accuracy and freshness ([leaderboard](https://openbenchmarks.com/company-funding))
+- [OB-Company-Enrichment-Firmographics](https://github.com/openbenchmarks-labs/OB-Company-Enrichment-Firmographics): Core firmographic enrichment ([leaderboard](https://openbenchmarks.com/company-enrichment))
+- [OB-Company-Enrichment-Funding](https://github.com/openbenchmarks-labs/OB-Company-Enrichment-Funding): Latest funding round accuracy and freshness ([leaderboard](https://openbenchmarks.com/company-funding))
 - [All OpenBenchmarks leaderboards](https://openbenchmarks.com)
 
 ## License

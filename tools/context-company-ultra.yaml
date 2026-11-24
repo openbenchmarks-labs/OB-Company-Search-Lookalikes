@@ -1,0 +1,9 @@
+tool: context-company-ultra
+name: context.dev company search (ultra)
+# Billed in context.dev credits per page of 10 companies (10 credits per page in ultra
+# mode), with no fixed USD price per credit, so no list price is set.
+pricing:
+  mode: none
+setups:
+  ultra:
+    mode: ultra

@@ -1,0 +1,11 @@
+tool: parallel-task-core
+name: Parallel Task API (core, count in schema)
+# One task run per seed. List price per completed run on the core processor.
+pricing:
+  mode: per_call
+  usd: 0.025
+  source: "https://docs.parallel.ai/getting-started/pricing"
+setups:
+  core-count:
+    processor: core
+    count_in_schema: true

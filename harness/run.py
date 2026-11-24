@@ -31,6 +31,8 @@ Env (required when running live; ignored under --mock):
   LUSHA_API_KEY
   PREDICT_LEADS_API_TOKEN + PREDICT_LEADS_API_KEY
   SELTZ_API_KEY
+  CONTEXT_API_KEY                               context.dev
+  ANTHROPIC_API_KEY, FIREWORKS_API_KEY          model-only baselines (GPT-5.6 Sol uses the judge's Azure deployment)
 """
 from __future__ import annotations
 
@@ -411,7 +413,7 @@ def main() -> int:
             upsert_seed_vendor_cell(
                 snapshot, dataset_slug=dataset_slug, seed=seed,
                 provider_slug=runner["VENDOR_SLUG"], provider_name=runner["VENDOR_NAME"],
-                k=k, judged=None, error=err,
+                k=k, judged=None, error=err, attempts=attempts,
             )
             # Persist the raw audit trail even on full failure so the open-source
             # bundle still shows which configs were tried and why each failed.

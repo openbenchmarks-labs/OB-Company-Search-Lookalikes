@@ -30,15 +30,15 @@ No seed files or run dumps are committed to this repository.
 - **Public split:** 10 seed companies published on Hugging Face at [`openbenchmarks/OB-Company-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Lookalikes).
 - **Held-out split:** The seed set used for the published leaderboard stays private so tools cannot tune to it.
 
-Place your local seed file at `data/latest-lookalike.json` before running live APIs, or pass `--mock` for a fully offline run.
+Place your seed file at `data/latest-lookalike.json` before running. `--mock` runs the same pipeline with a fake tool and judge, no API keys needed; it still needs the seed file.
 
 See [`data/README.md`](data/README.md) for the `latest-lookalike.json` schema and output layout.
 
 ## Repository structure
 
 - [`data/`](data/README.md): Schema for `latest-lookalike.json` and run output layout (no seed files committed).
-- [`harness/`](harness/README.md): CLI runner (`harness/run.py`), re-judging CLI (`harness/rejudge.py`), and per-tool API adapters.
-- [`tools/`](tools/README.md): One `<tool>.yaml` config per vendor with setups and pricing (18 tools).
+- [`harness/`](harness/README.md): CLI runner (`harness/run.py`), re-judge CLI (`harness/rejudge.py`) and per-tool API adapters.
+- [`tools/`](tools/README.md): One `<tool>.yaml` config per vendor with setups and pricing (16 tools).
 - [`judge/`](judge/README.md): Three-model judge panel, precision/ranking metrics, and leaderboard builder.
 - [`benchmark.yaml`](benchmark.yaml): Benchmark contract, scope, and refresh cadence.
 - [`AGENTS.md`](AGENTS.md): Entry guide for coding agents.
@@ -59,7 +59,7 @@ cp .env.example .env
 .venv/bin/python -m harness.run --help
 ```
 
-Add `--mock` for an end-to-end offline run using a mock vendor and mock judge.
+Add `--mock` to run end to end with a fake tool and judge instead of live APIs.
 
 ## Adding or updating a tool
 

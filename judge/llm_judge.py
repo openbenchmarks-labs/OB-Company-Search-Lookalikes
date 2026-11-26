@@ -522,9 +522,9 @@ DISQUALIFIERS (set `disqualifier` to the strongest that applies; else "none"):
   - duplicate: the seed itself, or a near-duplicate/parody entry.
 
 CATEGORY GUIDANCE (the seed's category is given):
-  - b2b-saas / devtools: match on product category + buyer; ignore horizontal giants unless truly comparable.
-  - ecommerce: match commerce-infrastructure peers, not the merchants who buy them.
-  - healthtech: match care-model peers, not the hospitals/insurers they sell into.
+  - b2b-saas / devtools: match on product category + buyer (e.g. support tooling ≠ generic CRM); ignore horizontal giants unless truly comparable.
+  - ecommerce: match DTC infra peers (SMS, subscriptions, retention), not the merchants who buy them.
+  - healthtech: match care-model peers (digital MSK, value-based primary care), not hospitals/insurers they sell into.
   - home-services / trades: distinguish vertical SaaS for contractors from the contractors themselves; match like-for-like.
   - real-estate: match operator/manager peers at comparable portfolio scale.
 

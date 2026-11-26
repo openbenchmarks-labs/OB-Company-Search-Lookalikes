@@ -4,6 +4,7 @@ tool: lusha
 name: Lusha
 pricing:
   mode: none          # credits, not directly USD-priced
+  source: "credits-based plan (not directly USD-priced)"
 setups:
   seed_only:
     fresh_session: false

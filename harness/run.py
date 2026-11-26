@@ -19,6 +19,8 @@ Usage:
   python -m harness.run --k 10             # override default K
   python -m harness.run --judge-model gpt-5
   python -m harness.run --retry-failed     # only re-run cells that failed or are missing
+  python -m harness.run --verbose          # print per-config attempt details
+  python -m harness.run --output-json out.json  # write a JSON summary on completion
 
 Env (required when running live; ignored under --mock):
   AZURE_OPENAI_NEXTGEN_DEPLOYMENT_KEY + _URL    judge (Azure-hosted gpt-5)
@@ -38,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import json
 import os
 import sys
 import time
@@ -312,12 +315,35 @@ def main() -> int:
         default=None,
         help="max judge LLM calls in flight PER cell (default 3; env LOOKALIKE_JUDGE_CONCURRENCY). Live ceiling = concurrency x this.",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help=(
+            "print per-config attempt details during the run: each config tried, "
+            "its outcome (ok / vendor_error / no_candidates / skipped), "
+            "returned candidates count, and latency."
+        ),
+    )
+    parser.add_argument(
+        "--output-json",
+        default=None,
+        metavar="PATH",
+        help=(
+            "write a machine-readable JSON summary to PATH on completion. "
+            "Contains: seeds, vendors, k, judge, cells_judged, failed, skipped, "
+            "and a per-cell result list (seed, vendor, precision_at_k, relevant, "
+            "latency_ms, cost_usd, config, error). "
+            "Useful for CI pipelines and downstream analysis."
+        ),
+    )
     args = parser.parse_args()
 
     snapshot = read_snapshot()
     seeds = select_seeds(read_seeds(), parse_csv(args.seeds))
     vendors = select_vendors(parse_csv(args.only))
     k = args.k or snapshot.get("k") or DEFAULT_K
+    verbose: bool = args.verbose
+    output_json_path: str | None = args.output_json
 
     if not seeds:
         print("no seeds matched filter", file=sys.stderr)
@@ -360,6 +386,7 @@ def main() -> int:
     failed_cells = 0
     skipped_cells = 0
     failures: list[dict[str, str]] = []  # {seed, vendor, error}
+    cell_results: list[dict[str, Any]] = []  # one entry per finished cell for --output-json
 
     # Build the work list up front so --retry-failed / --config skips are counted
     # without spawning workers. Each item is the (seed, resolved-runner) to run.
@@ -405,10 +432,27 @@ def main() -> int:
             )
             print(f"{tag} CRASH  {result}")
             failures.append({"seed": seed.seed_slug, "vendor": runner["VENDOR_SLUG"], "error": str(result)})
+            cell_results.append({
+                "seed": seed.seed_slug, "vendor": runner["VENDOR_SLUG"],
+                "precision_at_k": None, "relevant": None, "latency_ms": None,
+                "cost_usd": None, "config": None, "error": str(result),
+            })
             failed_cells += 1
             return
 
         judged, err, attempts = result
+
+        # --verbose: print every config attempt that was made for this cell.
+        if verbose and attempts:
+            for attempt in attempts:
+                cfg_name = (attempt.get("config") or {}).get("name", "?")
+                res_status = (attempt.get("result") or {}).get("status", "?")
+                lat = (attempt.get("result") or {}).get("latency_ms")
+                n_cands = len(attempt.get("extracted_candidates") or [])
+                lat_str = f"  lat={lat}ms" if lat is not None else ""
+                n_str = f"  cands={n_cands}" if n_cands else ""
+                print(f"  {tag}   cfg={cfg_name}  status={res_status}{n_str}{lat_str}")
+
         if judged is None:
             upsert_seed_vendor_cell(
                 snapshot, dataset_slug=dataset_slug, seed=seed,
@@ -425,6 +469,11 @@ def main() -> int:
                 )
             print(f"{tag} FAIL   {err}")
             failures.append({"seed": seed.seed_slug, "vendor": runner["VENDOR_SLUG"], "error": err or "no successful runs"})
+            cell_results.append({
+                "seed": seed.seed_slug, "vendor": runner["VENDOR_SLUG"],
+                "precision_at_k": None, "relevant": None, "latency_ms": None,
+                "cost_usd": None, "config": None, "error": err,
+            })
             failed_cells += 1
             return
 
@@ -446,6 +495,15 @@ def main() -> int:
             f"({judged.relevant_count}/{judged.k} relevant)  "
             f"config={judged.run.config_name}  lat={judged.run.latency_ms}ms"
         )
+        cell_results.append({
+            "seed": seed.seed_slug, "vendor": runner["VENDOR_SLUG"],
+            "precision_at_k": judged.precision_at_k,
+            "relevant": judged.relevant_count,
+            "latency_ms": judged.run.latency_ms,
+            "cost_usd": judged.run.cost_usd,
+            "config": judged.run.config_name,
+            "error": None,
+        })
         total_cells += 1
         # Checkpoint after every completed cell so an interrupted run is
         # resumable with --retry-failed (which keys on snapshot cells).
@@ -490,6 +548,8 @@ def main() -> int:
             f"cells_judged={total_cells}, failed={failed_cells}, skipped={skipped_cells}"
         )
         _print_failure_summary(failures)
+        _write_output_json(output_json_path, args, seeds, vendors, k, judge,
+                           total_cells, failed_cells, skipped_cells, cell_results)
         return 0
 
     write_snapshot(snapshot)
@@ -498,7 +558,48 @@ def main() -> int:
         f"failed={failed_cells}, skipped={skipped_cells}"
     )
     _print_failure_summary(failures)
+    _write_output_json(output_json_path, args, seeds, vendors, k, judge,
+                       total_cells, failed_cells, skipped_cells, cell_results)
     return 0
+
+
+def _write_output_json(
+    path: str | None,
+    args: Any,
+    seeds: list[Seed],
+    vendors: list[str],
+    k: int,
+    judge: Any,
+    total_cells: int,
+    failed_cells: int,
+    skipped_cells: int,
+    cell_results: list[dict[str, Any]],
+) -> None:
+    """Write a machine-readable JSON summary to `path` when --output-json is set.
+
+    The summary is designed for CI pipelines and downstream analysis — it
+    captures the full run metadata and a per-cell result list in one file.
+    """
+    if not path:
+        return
+    summary = {
+        "seeds": [s.seed_slug for s in seeds],
+        "vendors": vendors,
+        "k": k,
+        "judge": judge.label(),
+        "mock": args.mock,
+        "dry_run": args.dry_run,
+        "cells_judged": total_cells,
+        "cells_failed": failed_cells,
+        "cells_skipped": skipped_cells,
+        "cells": cell_results,
+    }
+    try:
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(summary, fh, indent=2)
+        print(f"\nwrote JSON summary → {path}")
+    except OSError as exc:
+        print(f"\nwarning: could not write --output-json to {path!r}: {exc}", file=sys.stderr)
 
 
 def _print_failure_summary(failures: list[dict[str, str]]) -> None:

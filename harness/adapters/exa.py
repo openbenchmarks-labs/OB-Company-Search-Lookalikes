@@ -3,14 +3,24 @@
 `company_query` builds the seed-first query and over-fetches numResults;
 `dedupe_by_domain` collapses page hits to one candidate per domain, sorted by score.
 If the query returns nothing, `run` retries once with the concise query.
+
+Edge-case handling:
+- Malformed or non-string URLs are skipped cleanly in dedupe_by_domain.
+- Aggregator domain matching is explicit (exact host or subdomain), not substring.
+- Score comparisons guard against non-numeric values via float() coercion.
+- The fallback is only used when the primary run succeeds (no error) but returns
+  zero candidates, so network/auth failures are not silently retried.
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from ..models import Candidate, RunResult, Seed
 from ..spec_runner import run_from_spec
 from ..tool_specs import build_spec
+
+log = logging.getLogger(__name__)
 
 AGGREGATOR_HOSTS = {
     "linkedin.com", "tracxn.com", "platform.tracxn.com", "crunchbase.com",
@@ -55,25 +65,42 @@ def _company_entity(item: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
+def _safe_score(value: Any) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def dedupe_by_domain(raw_items: list[Any], ctx: dict[str, Any]) -> list[Candidate]:
     """transform_candidates: collapse page hits to one candidate per domain
-    (highest score), then sort by score DESC."""
+    (highest score), then sort by score DESC.
+
+    Robustness notes:
+    - Non-dict items are skipped (Exa occasionally wraps results in extra layers).
+    - Non-string or empty URLs are skipped rather than causing an AttributeError.
+    - Scores are coerced to float with a 0.0 fallback; non-numeric values (e.g.
+      null, missing key) are treated as 0 and do not raise.
+    - Aggregator matching uses exact host equality or subdomain suffix — not a
+      substring — so "mylinkedin.com" is never mislabelled as an aggregator.
+    """
     by_domain: dict[str, tuple[dict[str, Any], str | None]] = {}
     for r in raw_items:
         if not isinstance(r, dict):
+            log.debug("exa: skipping non-dict result item: %r", type(r))
             continue
-        u = r.get("url") or ""
-        if not isinstance(u, str) or not u:
+        u = r.get("url")
+        if not isinstance(u, str) or not u.strip():
             continue
-        host = u.replace("https://", "").replace("http://", "").split("/")[0].lower()
+        host = u.replace("https://", "").replace("http://", "").split("/")[0].lower().strip()
         host = host[4:] if host.startswith("www.") else host
         if not host:
             continue
-        is_aggregator = any(host == item or host.endswith("." + item) for item in AGGREGATOR_HOSTS)
+        is_aggregator = any(host == agg or host.endswith("." + agg) for agg in AGGREGATOR_HOSTS)
         domain = None if is_aggregator else host
         key = domain or f"url:{u.lower()}"
         existing = by_domain.get(key)
-        if existing is None or float(r.get("score") or 0) > float(existing[0].get("score") or 0):
+        if existing is None or _safe_score(r.get("score")) > _safe_score(existing[0].get("score")):
             by_domain[key] = (r, domain)
 
     candidates: list[Candidate] = []
@@ -87,7 +114,7 @@ def dedupe_by_domain(raw_items: list[Any], ctx: dict[str, Any]) -> list[Candidat
         )
         candidates.append(
             Candidate(
-                name=str(title).strip(),
+                name=str(title).strip() if title else "",
                 domain=domain,
                 description=(text or "")[:400] if isinstance(text, str) else None,
                 extra={
@@ -97,7 +124,7 @@ def dedupe_by_domain(raw_items: list[Any], ctx: dict[str, Any]) -> list[Candidat
                 },
             )
         )
-    candidates.sort(key=lambda c: -float(c.extra.get("score") or 0))
+    candidates.sort(key=lambda c: -_safe_score(c.extra.get("score")))
     return candidates
 
 

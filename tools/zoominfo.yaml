@@ -4,5 +4,6 @@ tool: zoominfo-lookalike
 name: ZoomInfo
 pricing:
   mode: none
+  source: "https://gtm.ai (free tier available via `gtm companies similar` CLI)"
 setups:
   native_similar_by_name: {}

@@ -11,14 +11,25 @@ a seed with no hints.
 Ocean's static setups (seed_only / mid_market / us_uk_de_funded) layer their
 filters via the request's `merge` directive (`config.filters → companiesFilters`),
 so this hook is a no-op for them.
+
+Edge-case handling:
+- `_size_bands` guards against non-numeric employee hint values via explicit
+  int() coercion; malformed hints fall back to unbounded (0 / 10**9).
+- Country codes from firmographic hints are lowercased to match Ocean's
+  `includeCountries` format; empty strings are excluded.
+- `firmographic_filters` raises `SkipConfig` (not an unhandled exception) when
+  the seed has no firmographic hints, so the runner records a clean skip.
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from ..models import RunResult, Seed, SkipConfig
 from ..spec_runner import run_from_spec
 from ..tool_specs import build_spec
+
+log = logging.getLogger(__name__)
 
 # Ocean's discrete employee-count bands. A seed's [min,max] employee hint maps
 # to every overlapping band.
@@ -39,14 +50,26 @@ _OCEAN_BANDS: list[tuple[int, int, str]] = [
 
 
 def _size_bands(min_emp: int | None, max_emp: int | None) -> list[str]:
-    lo = min_emp if min_emp is not None else 0
-    hi = max_emp if max_emp is not None else 10**9
+    try:
+        lo = int(min_emp) if min_emp is not None else 0
+    except (TypeError, ValueError):
+        log.warning("ocean: non-numeric min_employees hint %r — using 0", min_emp)
+        lo = 0
+    try:
+        hi = int(max_emp) if max_emp is not None else 10**9
+    except (TypeError, ValueError):
+        log.warning("ocean: non-numeric max_employees hint %r — using unbounded", max_emp)
+        hi = 10**9
     return [label for blo, bhi, label in _OCEAN_BANDS if blo <= hi and bhi >= lo]
 
 
 def firmographic_filters(ctx: dict[str, Any]) -> None:
     """build_request: for `use_seed_firmo` configs, derive Ocean filter vars from
-    the seed's firmographic hints (skip cleanly when the seed has none)."""
+    the seed's firmographic hints (skip cleanly when the seed has none).
+
+    Country codes are lowercased to match Ocean's `includeCountries` format;
+    empty strings and None values are excluded so the JSON body is clean.
+    """
     config = ctx["config"]
     if not config.get("use_seed_firmo"):
         return  # static configs layer filters via the spec `merge` directive
@@ -58,8 +81,10 @@ def firmographic_filters(ctx: dict[str, Any]) -> None:
     bands = _size_bands(firmo.get("min_employees"), firmo.get("max_employees"))
     vars["company_sizes"] = bands or None
     locs = firmo.get("locations") or []
+    # Exclude empty strings and None; Ocean expects lowercase ISO country codes.
+    clean_locs = [str(c).lower() for c in locs if c and str(c).strip()]
     vars["primary_locations"] = (
-        {"includeCountries": [str(c).lower() for c in locs]} if locs else None
+        {"includeCountries": clean_locs} if clean_locs else None
     )
 
 

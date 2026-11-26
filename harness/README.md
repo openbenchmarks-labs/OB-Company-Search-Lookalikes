@@ -11,4 +11,3 @@ Runs the benchmark and calls each tool's API. No grading code lives here.
 - `models.py` — Shared data types: seed, candidate, run result and judge verdict.
 - `snapshot.py` — Reads the seed companies and writes result cells and detail files under `data/`.
 - `mock_tool.py` — A fake tool for offline runs (`--mock`).
-- `tests/` — Offline tests for the adapters and pricing.

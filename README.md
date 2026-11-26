@@ -1,6 +1,8 @@
 # OB-Company-Search-Lookalikes
 
-Open, independent benchmark of company lookalike APIs. Ten tools each return up to 100 similar companies for the same 48 B2B seed companies, and a three-model LLM judge panel scores every company returned. Tools are ranked by Precision@100, with Precision@10 for the top of the list.
+Open, independent benchmark of company lookalike APIs. Each tool returns up to 100 similar companies for every seed company, a three-model LLM judge panel scores every company returned, and tools are ranked by Precision@100, with Precision@10 for the top of the list.
+
+The live leaderboard currently shows the previous board (2026 Q3: 10 tools on 48 seeds, judged by claude-opus-5, gpt-5.6-terra and kimi-k3). The v2 board, produced by this version of the harness, will replace it.
 
 **Live leaderboard:** [openbenchmarks.com/lookalikes](https://openbenchmarks.com/lookalikes) · **Public dataset:** [`openbenchmarks/OB-Company-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Lookalikes)
 
@@ -17,7 +19,7 @@ For each seed company, every tool returns an ordered list of candidate lookalike
 
 ## Tools evaluated
 
-16 tools configured in [`tools/`](tools/README.md). The published board ranks ten of them. Lusha is configured but not ranked, because its lookalike endpoint needs at least five seed companies per request. The Parallel Task API and the three model-only baselines are newer additions.
+16 tools configured in [`tools/`](tools/README.md): 13 APIs and three model-only baselines. Lusha is configured but not scored, because its lookalike endpoint needs at least five seed companies per request.
 
 `companyenrich`, `cufinder`, `discolike`, `exa`, `extruct`, `lusha`, `ocean`, `parallel`, `parallel-task`, `parallel-task-core`, `predictleads`, `seltz`, `zoominfo`
 
@@ -27,8 +29,9 @@ Model-only baselines (a model answers from its own knowledge, with no web access
 
 No seed files or run dumps are committed to this repository.
 
-- **Public split:** 10 seed companies published on Hugging Face at [`openbenchmarks/OB-Company-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Lookalikes).
-- **Held-out split:** The seed set used for the published leaderboard stays private so tools cannot tune to it.
+- **Private set:** 285 seed companies. Held out; the published leaderboard is computed on it.
+- **Validation set:** 74 seed companies, shared with the tools' vendors with per-seed results.
+- **Public sample:** 10 seed companies in the same format, on Hugging Face at [`openbenchmarks/OB-Company-Lookalikes`](https://huggingface.co/datasets/openbenchmarks/OB-Company-Lookalikes), for running the harness yourself.
 
 Place your seed file at `data/latest-lookalike.json` before running. `--mock` runs the same pipeline with a fake tool and judge, no API keys needed; it still needs the seed file.
 
